@@ -1,0 +1,4 @@
+ant/
+build/
+
+*.coffee.js
