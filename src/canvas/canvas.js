@@ -1,8 +1,3 @@
-VideoStream.prototype.createVideoCanvas = function(canvas){
-	return new VideoStream.VideoCanvas(this.video, canvas);
-};
-
-
 VideoStream.VideoCanvas = function(video, canvas){
 	var glContextAttributes = {
 		alpha                          : false,
@@ -25,6 +20,15 @@ VideoStream.VideoCanvas = function(video, canvas){
 	
 	return this;
 };
+
+// make VideoCanvas easier accessible 
+var VideoCanvas = VideoStream.VideoCanvas;
+
+// simplify creation of VideoCanvas
+VideoStream.prototype.createVideoCanvas = function(canvas){
+	return new VideoStream.VideoCanvas(this.video, canvas);
+};
+
 
 /**
  * Sets the shader used to render the video onto the canvas.

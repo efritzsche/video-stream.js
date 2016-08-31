@@ -17,9 +17,11 @@
 'use strict';
 
 var VideoStream = function(video){
-	//window.VideoCanvas = VideoStream.VideoCanvas;
-	
 	this.video = video;
 	
 	return this;
 };
+
+// init UI package
+VideoStream.UI = {};
+VideoStream.UI.language = {};
