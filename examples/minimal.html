@@ -1,0 +1,56 @@
+<html>
+<head>
+	<title>video-stream.js - Minimal</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+	<script type="application/javascript" src="https://github.com/2b2/video-stream.js/releases/download/v0.1.1/video-stream.min.js"></script>
+	<style>
+	body{
+		margin: 0px;
+		padding: 0px;
+		background-color: #efefef;
+	}
+	#capture{
+		display: none;
+	}
+	#capture-frame{
+		width: 100vw;
+		height: 100vh;
+		object-fit: contain;
+	}
+	</style>
+</head>
+<body>
+	<video id="capture" autoplay></video>
+	<canvas id="capture-frame"></canvas>
+	
+	<script type="application/javascript">
+		'use strict';
+		
+		var video = document.querySelector('#capture');
+		var canvas = document.querySelector('#capture-frame');
+		
+		// create new VideoStream
+		var videoStream = new VideoStream(video);
+		// start new video stream in VGA resolution (640x360) with the default video input device
+		videoStream.setupVideoOnlyStream(VideoStream.Resolution.VGA)
+		.then(startCapture)
+		.catch(function(e){console.log(e);});
+		
+		function startCapture(){
+			// set canvas width and height to match video resolution
+			canvas.width = video.videoWidth;
+			canvas.height = video.videoHeight;
+			
+			// project the video onto the canvas
+			var videoCanvas = videoStream.createVideoCanvas(canvas);
+			// set the used GLSL shaders to the included grayscale fragment shader
+			// (the vertex shader is the default one which is fine most of the time)
+			videoCanvas.setShaders({fragment: VideoStream.FragmentShaders.GRAYSCALE});
+			// start the updating of the canvas
+			videoCanvas.start();
+		}
+	</script>
+</body>
+</html>
