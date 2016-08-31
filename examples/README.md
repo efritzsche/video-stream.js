@@ -1,5 +1,6 @@
 # video-stream.js - Examples
 
+| Example                   | Description                                    |
 |:-------------------------:|:----------------------------------------------:|
 | [Basic](./basic.html)     | Includes camera selection and image mirroring. |
 | [Minimal](./minimal.html) | A minimal working example.                     |
