@@ -34,6 +34,14 @@ VideoStream.prototype.setupVideoOnlyStream = function(resolution, videoDevice = 
 	var video = this.video;
 	return new Promise(function(resolve, reject){
 		var mediaReady = function(stream){
+			video.stream = stream;
+			if(!stream.stop && stream.getTracks){
+				stream.stop = function(){
+					this.getTracks().forEach(function(track){
+						track.stop();
+					});
+				};
+			}
 			video.src = window.URL.createObjectURL(stream);
 			video.onloadedmetadata = resolve;
 		}
@@ -66,3 +74,25 @@ VideoStream.prototype.setupVideoOnlyStream = function(resolution, videoDevice = 
 		}
 	});
 };
+
+/**
+ * Starts the current stream after it was stopped or paused.
+ */
+VideoStream.prototype.play = function(){
+	this.video.play();
+}
+
+/**
+ * Pauses the currently running stream.
+ */
+VideoStream.prototype.pause = function(){
+	this.video.pause();
+}
+
+/**
+ * Stops the currently running stream.
+ */
+VideoStream.prototype.stop = function(){
+	this.video.pause();
+	this.video.stream.stop();
+}
