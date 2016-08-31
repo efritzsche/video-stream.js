@@ -23,7 +23,7 @@ VideoStream.UI.deviceSelector = function(selectElement, deviceType = VideoStream
 			var label = devices[i].label === '' ? genericText + ' #' + (genericIndex++) : devices[i].label;
 			
 			var option = document.createElement('OPTION');
-			option.setAttribute('value', i);
+			option.setAttribute('value', devices[i].deviceId);
 			var text = document.createTextNode(label);
 			option.appendChild(text);
 			selectElement.appendChild(option);
