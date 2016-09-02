@@ -9,7 +9,7 @@ VideoStream.VideoCanvas = function(video, canvas){
 		preferLowPowerToHighPerformance: false,
 		failIfMajorPerformanceCaveat   : false
 	};
-	this.gl = canvas.getContext('webgl', glContextAttributes);
+	this.gl = canvas.getContext('webgl', glContextAttributes) || canvas.getContext('experimental-webgl', glContextAttributes);
 	
 	this.video = video;
 	this.canvas = canvas;
