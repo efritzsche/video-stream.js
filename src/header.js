@@ -22,6 +22,9 @@ var VideoStream = function(video){
 	return this;
 };
 
+// init codecs
+VideoStream.Codecs = {};
+
 // init UI package
 VideoStream.UI = {};
 VideoStream.UI.language = {};
