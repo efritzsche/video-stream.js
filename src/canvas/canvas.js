@@ -9,6 +9,7 @@ VideoStream.VideoCanvas = function(video, canvas){
 		preferLowPowerToHighPerformance: false,
 		failIfMajorPerformanceCaveat   : false
 	};
+	// TODO keep an eye on WebGL2 (OpenGL ES 3.0) browser support
 	this.gl = canvas.getContext('webgl', glContextAttributes) || canvas.getContext('experimental-webgl', glContextAttributes);
 	
 	this.video = video;
