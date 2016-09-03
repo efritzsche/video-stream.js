@@ -3,7 +3,7 @@ VideoStream.Codecs['CUSTOM'] = {
 		shaders: {
 			multipass: false,
 			fromURL: true,
-			fragment: 'codecs/custom/encoder.frag'
+			fragment: 'custom/encoder.frag'
 		},
 		encodeFrame: function(data){/* TODO call function */}
 	}
