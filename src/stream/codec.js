@@ -37,19 +37,19 @@ VideoStream.prototype.setVideoCodec = function(codecName, videoCanvas = null){
 				}
 				VideoStream.utils.loadTextFromURL(codecConfig.encoder.shaders.vertex, this.codecDir)
 				.then(function(vertex){
-					codecShaders.vertex = vertex || VideoStream.VertexShaders.DEFAULT;
+					codecShaders.vertex = vertex;
 					asyncLoadCodecShaders();
 				});
 				VideoStream.utils.loadTextFromURL(codecConfig.encoder.shaders.fragment, this.codecDir)
 				.then(function(fragment){
-					codecShaders.fragment = fragment || VideoStream.FragmentShader.DEFAULT;
+					codecShaders.fragment = fragment;
 					asyncLoadCodecShaders();
 				});
 			}
 			else{
 				var codecShaders = {};
-				codecShaders.vertex = codecConfig.encoder.shaders.vertex || VideoStream.VertexShaders.DEFAULT;
-				codecShaders.fragment = codecConfig.encoder.shaders.fragment || VideoStream.FragmentShader.DEFAULT;
+				codecShaders.vertex = codecConfig.encoder.shaders.vertex;
+				codecShaders.fragment = codecConfig.encoder.shaders.fragment;
 				
 				// instantly call setCodecEncoder because all resources are already loaded
 				setCodecEncoder(codecShaders);
