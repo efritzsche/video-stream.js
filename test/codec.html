@@ -115,7 +115,7 @@
 		
 		// fill #select-device <select> element with aviable video devices
 		var selectDevice = document.querySelector('#select-device');
-		VideoStream.UI.deviceSelector(selectDevice);
+		VideoStream.ui.deviceSelector(selectDevice);
 		// add change listener to device selection
 		selectDevice.addEventListener('change', function(){
 			videoStream.stop();
@@ -156,23 +156,96 @@
 			videoCanvas.setShaders({fragment: `
 				precision mediump float;
 				
-				uniform int u_stage;
-				uniform sampler2D u_lastFrame;
+				const mat3 SOBEL_X = mat3(
+					-1, 0, 1,
+					-2, 0, 2,
+					-1, 0, 1
+				);
+				const mat3 SOBEL_Y = mat3(
+					-1, -2, -1,
+					 0,  0,  0,
+					 1,  2,  1
+				);
 				
 				varying vec2 v_coordinate;
 				
 				uniform sampler2D texture;
 				
+				uniform vec2 u_textureSize;
+				
 				void main(){
-					if(u_stage == 0){
-						if(texture2D(texture, v_coordinate).rgba == texture2D(u_lastFrame, v_coordinate).rgba){
-							gl_FragColor = texture2D(texture, v_coordinate).rgba;
-							return;
+					vec2 onePixel = 1.0 / u_textureSize;
+					
+					vec3 rgbColor = texture2D(texture, v_coordinate).rgb;
+					float y = 0.299 * rgbColor.r + 0.587 * rgbColor.g + 0.114 * rgbColor.b;
+					
+					float chroma = 0.0;
+					if(v_coordinate.y < 0.5){
+						//cb
+						if(v_coordinate.x < 0.5){
+							vec3 rgbColorQuad = (
+								texture2D(texture, v_coordinate * 2.0).rgb
+								+ texture2D(texture, (v_coordinate * 2.0) + vec2(0, onePixel.y)).rgb
+								+ texture2D(texture, (v_coordinate * 2.0) + vec2(onePixel.x, 0)).rgb
+								+ texture2D(texture, (v_coordinate * 2.0) + vec2(onePixel.x, onePixel.y)).rgb
+							) / 4.0;
+							float yQuad = 0.299 * rgbColorQuad.r + 0.587 * rgbColorQuad.g + 0.114 * rgbColorQuad.b;
+							chroma = 0.433 * (rgbColorQuad.b - (yQuad - 0.5));
+						}
+						//cr
+						else{
+							vec3 rgbColorQuad = (
+								texture2D(texture, (v_coordinate - vec2(0.5, 0.0)) * 2.0).rgb
+								+ texture2D(texture, ((v_coordinate - vec2(0.5, 0.0)) * 2.0) + vec2(0, onePixel.y)).rgb
+								+ texture2D(texture, ((v_coordinate - vec2(0.5, 0.0)) * 2.0) + vec2(onePixel.x, 0)).rgb
+								+ texture2D(texture, ((v_coordinate - vec2(0.5, 0.0)) * 2.0) + vec2(onePixel.x, onePixel.y)).rgb
+							) / 4.0;
+							float yQuad = 0.299 * rgbColorQuad.r + 0.587 * rgbColorQuad.g + 0.114 * rgbColorQuad.b;
+							chroma = 0.877 * (rgbColorQuad.r - (yQuad - 0.5));
 						}
 					}
-					gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+					
+					gl_FragColor = vec4(y, chroma, 0.0, 1.0);
 				}
 			`});
+			var gl = videoCanvas.getGlContext();
+			var textureSizeLocation = gl.getUniformLocation(videoCanvas.getGlProgram(), 'u_textureSize')
+			gl.uniform2f(textureSizeLocation, video.videoWidth, video.videoHeight);
+			
+			var frameCount = 0;
+			var canvasUpdate = videoCanvas.update;
+			videoCanvas.update = function(){
+				if((++frameCount) == 2){
+					/*
+					var lumaData = new Uint8Array(video.videoWidth * video.videoHeight);
+					this.gl.readPixels(
+						0, 0, video.videoWidth, video.videoHeight, this.gl.RED, this.gl.UNSIGNED_BYTE, lumaData
+					);
+					
+					var chromaData = new Uint8Array(Math.floor(video.videoWidth * video.videoHeight * 0.5));
+					this.gl.readPixels(
+						0, 0, video.videoWidth, Math.floor(video.videoHeight * 0.5), this.gl.GREEN, this.gl.UNSIGNED_BYTE, chromaData
+					);
+					*/
+					var data = new Uint8Array(video.videoWidth * video.videoHeight * 3);
+					this.gl.readPixels(
+						0, 0, video.videoWidth, video.videoHeight, this.gl.RGB, this.gl.UNSIGNED_BYTE, data
+					);
+					
+					console.log(data.length);
+					
+					this.stop();
+					videoStream.stop();
+					
+					var blob = new Blob(data, {type: 'octet/stream'});
+					//saveAs(blob, 'test.bin');
+					//var url = window.URL.createObjectURL(blob);
+					//location.href = url;
+					//window.URL.revokeObjectURL(url);
+				}
+				canvasUpdate.call(this);
+			};
+			
 			// start the updating of the canvas
 			videoCanvas.start();
 		}
