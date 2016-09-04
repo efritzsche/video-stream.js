@@ -6,14 +6,14 @@ VideoStream.prototype.setVideoCodec = function(codecName, videoCanvas = null){
 	
 	if(videoCanvas == null){
 		var canvas = document.createElement('CANVAS');
-		canvas.setAttribute('style', 'display: none;');
+		canvas.style = 'display: none;';
 		
 		canvas.width = this.video.videoWidth;
 		canvas.height = this.video.videoHeight;
 		
 		videoCanvas = this.createVideoCanvas();
 		
-		document.querySelector('body').appeendChild(canvas);
+		document.body.appeendChild(canvas);
 	}
 	
 	// load encoder
