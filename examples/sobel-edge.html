@@ -1,0 +1,256 @@
+<html>
+<head>
+	<title>video-stream.js - Sobel-Edge-Detection</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="manifest" href="sobel-edge.manifest.json">
+	
+	<link rel="icon" type="image/png" href="https://avatars3.githubusercontent.com/u/20301426?v=3&s=16" sizes="16x16">
+	<link rel="icon" type="image/png" href="https://avatars3.githubusercontent.com/u/20301426?v=3&s=32" sizes="32x32">
+	<link rel="icon" type="image/png" href="https://avatars3.githubusercontent.com/u/20301426?v=3&s=96" sizes="96x96">
+	
+	<script type="application/javascript" src="https://github.com/2b2/video-stream.js/releases/download/v0.1.1/video-stream.min.js"></script>
+	<style>
+	body{
+		margin: 0px;
+		padding: 0px;
+		max-width: 100vw;
+		background-color: #efefef;
+	}
+	#capture{
+		display: none;
+	}
+	#capture-frame{
+		width: 100%;
+		height: 100vh;
+		object-fit: contain;
+	}
+	.mirror-frame{
+		-moz-transform: scale(-1, 1);
+		-webkit-transform: scale(-1, 1);
+		-o-transform: scale(-1, 1);
+		transform: scale(-1, 1);
+	}
+	#options{
+		display: flex;
+		align-items: flex-start;
+		margin: 0px 0px 10px 0px;
+		padding: 5px;
+		color: #6e6e6e;
+		border-bottom: 2px solid #0090ef;
+	}
+	#options label{
+		display: block;
+		padding: 5px 10px;
+		width: 200px;
+		border-right: 2px solid #0090ef;
+	}
+	#options label > span{
+		display: inline-block;
+		padding-top: 3px;
+		-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+	}
+	#options label .flip-switch, #options label select{
+		float: right;
+	}
+	#options label select{
+		width: 100%;
+		max-width: 60%;
+	}
+	.flip-switch{
+		position: relative;
+		display: inline-block;
+		width: 2.5em;
+		height: 1em;
+	}
+	.flip-switch .flip-switch-slider{
+		position: absolute;
+		margin-left: -6px;
+		top: 0px; left: 0px; width: 100%; height: 100%;
+		background: #7e7e7e; border: 3px solid #7e7e7e; border-radius: 6px;
+	}
+	.flip-switch input[type="checkbox"]{
+		display: none;
+	}
+	.flip-switch input[type="checkbox"]:checked + .flip-switch-slider{
+		background: #0090ef; border-color: #0090ef; 
+	}
+	.flip-switch .flip-switch-slider:before{
+		position: absolute;
+		top: 0px; bottom: 0px; left: 0px; right: auto; width: 50%;
+		content: "";
+		background: #ffffff; border: 3px solid #ffffff; border-radius: 4px;
+	}
+	.flip-switch input[type="checkbox"]:checked + .flip-switch-slider:before{
+		left: auto; right: 0px;
+	}
+	</style>
+</head>
+<body>
+	<form id="options" action="" autocomplete="on">
+	<label>
+		<span>Device:</span>
+		<select id="select-device"></select> 
+	</label>
+	<label>
+		<span>Mirror Video:</span>
+		<div id="mirror-video" class="flip-switch">
+			<input type="checkbox">
+			<div class="flip-switch-slider"></div>
+		</div>
+	</label>
+	</form>
+	
+	<video id="capture" autoplay></video>
+	<canvas id="capture-frame"></canvas>
+	
+	<script type="application/javascript">
+		'use strict';
+		
+		var resolution = VideoStream.Resolution.VGA;
+		
+		var video = document.querySelector('#capture');
+		var canvas = document.querySelector('#capture-frame');
+		
+		// fill #select-device <select> element with aviable video devices
+		var selectDevice = document.querySelector('#select-device');
+		VideoStream.UI.deviceSelector(selectDevice);
+		// add change listener to device selection
+		selectDevice.addEventListener('change', function(){
+			videoStream.stop();
+			videoStream.setupVideoOnlyStream(resolution, {deviceId: selectDevice.options[selectDevice.selectedIndex].value})
+			.then(function(){videoStream.play();})
+			.catch(function(e){console.log(e);});
+		});
+		
+		
+		// checkbox toggle listener
+		var mirrorVideoCheckbox = document.querySelector('#options #mirror-video input[type="checkbox"]');
+		var mirrorVideo = function(){
+			if(mirrorVideoCheckbox.checked){
+				canvas.setAttribute('class', 'mirror-frame');
+			}else{
+				canvas.removeAttribute('class');
+			}
+		};
+		mirrorVideo();
+		mirrorVideoCheckbox.addEventListener('click', mirrorVideo, false);
+		
+		// create new VideoStream
+		var videoStream = new VideoStream(video);
+		// start new video stream in above set resolution with the default video input device
+		videoStream.setupVideoOnlyStream(resolution)
+		.then(startCapture)
+		.catch(function(e){console.log(e);});
+		
+		function startCapture(){
+			// set canvas width and height to match video resolution
+			canvas.width = video.videoWidth;
+			canvas.height = video.videoHeight;
+			
+			// project the video onto the canvas
+			var videoCanvas = videoStream.createVideoCanvas(canvas);
+			// set the used GLSL shaders to a custom sobel-edge-detection fragment shader
+			// (the vertex shader is the default one which is fine most of the time)
+			videoCanvas.setShaders({fragment: `
+				precision mediump float;
+
+				const float HALF_PI = 1.5707963267948966192313216916398;
+				
+				const vec3 CHANNEL_MULTIPLY = vec3(0.2125, 0.7154, 0.0721); // for grayscale
+				
+				const mat3 SOBEL_X = mat3(
+					-1.0, 0.0, 1.0,
+					-2.0, 0.0, 2.0,
+					-1.0, 0.0, 1.0
+				);
+				const mat3 SOBEL_Y = mat3(
+					-1.0, -2.0, -1.0,
+					 0.0,  0.0,  0.0,
+					 1.0,  2.0,  1.0
+				);
+				
+				varying vec2 v_coordinate;
+				
+				uniform sampler2D texture;
+				uniform vec2 u_textureSize;
+				
+				void main(){
+					vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;
+					
+					// extract 3*3 pixel-square around the current pixel (also grayscale the pixel)
+					// [it may be a good idea to first gaussian-blur the image but that would be a multipass-shader
+					// and that is a whole other topic]
+					mat3 pixels = mat3(
+						dot(texture2D(texture, vec2(v_coordinate.x - onePixel.x, v_coordinate.y - onePixel.y)).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x - onePixel.x, v_coordinate.y             )).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x - onePixel.x, v_coordinate.y + onePixel.y)).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x             , v_coordinate.y - onePixel.y)).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture,                          v_coordinate                         ).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x             , v_coordinate.y + onePixel.y)).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x + onePixel.x, v_coordinate.y - onePixel.y)).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x + onePixel.x, v_coordinate.y             )).rgb, CHANNEL_MULTIPLY),
+						dot(texture2D(texture, vec2(v_coordinate.x + onePixel.x, v_coordinate.y + onePixel.y)).rgb, CHANNEL_MULTIPLY)
+					);
+					
+					// calculate the gradient in x and y direction
+					float gradientX =
+						  pixels[0][0] * SOBEL_X[0][0]
+						+ pixels[0][1] * SOBEL_X[0][1]
+						+ pixels[0][2] * SOBEL_X[0][2]
+						+ pixels[1][0] * SOBEL_X[1][0]
+						+ pixels[1][1] * SOBEL_X[1][1]
+						+ pixels[1][2] * SOBEL_X[1][2]
+						+ pixels[2][0] * SOBEL_X[2][0]
+						+ pixels[2][1] * SOBEL_X[2][1]
+						+ pixels[2][2] * SOBEL_X[2][2];
+					float gradientY =
+						  pixels[0][0] * SOBEL_Y[0][0]
+						+ pixels[0][1] * SOBEL_Y[0][1]
+						+ pixels[0][2] * SOBEL_Y[0][2]
+						+ pixels[1][0] * SOBEL_Y[1][0]
+						+ pixels[1][1] * SOBEL_Y[1][1]
+						+ pixels[1][2] * SOBEL_Y[1][2]
+						+ pixels[2][0] * SOBEL_Y[2][0]
+						+ pixels[2][1] * SOBEL_Y[2][1]
+						+ pixels[2][2] * SOBEL_Y[2][2];
+					
+					// calculate the direction of the edge
+					float direction = atan(gradientY / gradientX) + HALF_PI; // rotated by 90°
+					
+					// in a 3*3 square of pixels there are effectively just four different angles
+					// so each is represented by one of four colors
+					vec4 directionColor;
+					if(direction <  0.3926991 /* = 22.5° = (45° / 2) */){
+						directionColor = vec4(1, 0, 0, 0);
+					}
+					else if(direction < 1.178097 /* = 67.5° = 45° + 22.5° */){
+						directionColor = vec4(0, 1, 0, 0);
+					}
+					else if(direction < 1.9634954 /* = 112.5° = 90° + 22.5° */){
+						directionColor = vec4(0, 0, 1, 0);
+					}
+					else if(direction < 2.7488936 /* = 157.5° = 135° + 22.5° */){
+						directionColor = vec4(0.5, 1, 1, 0);
+					}
+					else{ // back to the beginning
+						directionColor = vec4(1, 0, 0, 0);
+					}
+					
+					// calculate total strength of edge (using the pythagorean equation)
+					float gradient = sqrt(pow(gradientX, 2.0) + pow(gradientY, 2.0));
+					
+					// set each pixel based on edge strength
+					gl_FragColor = directionColor * gradient;
+				}
+
+			`});
+			// give the frame dimensions to the shader
+			var gl = videoCanvas.getGlContext();
+			gl.uniform2f(gl.getUniformLocation(videoCanvas.getGlProgram(), "u_textureSize"), video.videoWidth, video.videoHeight);
+			// start canvas updating
+			videoCanvas.start();
+		}
+	</script>
+</body>
+</html>
