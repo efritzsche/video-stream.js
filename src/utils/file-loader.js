@@ -46,7 +46,7 @@ VideoStream.utils.loadShadersFromURL = function(vertexShaderURL, fragmentShaderU
 				resolve(shaders);
 			}
 		}
-		VideoStream.utils.loadTextFromURL(vertexShaderURL, dir)
+		VideoStream.utils.loadFileFromURL(vertexShaderURL, dir)
 		.then(function(vertex){
 			shaders.vertex = vertex;
 			asyncLoadShaders();
@@ -54,7 +54,7 @@ VideoStream.utils.loadShadersFromURL = function(vertexShaderURL, fragmentShaderU
 		.catch(function(e){
 			reject(e);
 		});
-		VideoStream.utils.loadTextFromURL(fragmentShaderURL, dir)
+		VideoStream.utils.loadFileFromURL(fragmentShaderURL, dir)
 		.then(function(fragment){
 			shaders.fragment = fragment;
 			asyncLoadShaders();
