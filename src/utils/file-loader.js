@@ -3,7 +3,7 @@ VideoStream.utils.loadFileFromURL = function(file, dir = '.'){
 		return new Promise(function(resolve){resolve(null);});
 	}
 	var path = file;
-	if(file.startsWith('/') == false && file.startsWith(/((http(s)?)|(file)):\/\//) == false){
+	if(file.startsWith('/') == false && /^((http(s)?)|(file)):\/\//i.test(file) == false){
 		path = dir.endsWith('/') ? dir + file : dir + '/' + file;
 	}
 	
