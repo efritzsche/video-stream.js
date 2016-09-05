@@ -20,13 +20,4 @@
 			<arg line="--js_output_file=build/${compiled-file-name} 'src/${header-file-name}' 'src/*.js' 'src/**/*.js' '!**/*.exclude.js'" />
 		</exec>
 	</target>
-	
-	<target name="copy-codec-shaders" description="Copy all codec .vert and .frag files to codecs dir">
-		<copy todir="build/codecs">
-			<union>
-				<fileset dir="src/stream/codecs" includes="**/*.vert" />
-				<fileset dir="src/stream/codecs" includes="**/*.frag" />
-			</union>
-		</copy>
-	</target>
 </project>

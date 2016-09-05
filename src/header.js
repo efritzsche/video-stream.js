@@ -22,9 +22,6 @@ var VideoStream = function(video){
 	return this;
 };
 
-// init codecs
-VideoStream.Codecs = {};
-
 // init utility package
 VideoStream.utils = {};
 
