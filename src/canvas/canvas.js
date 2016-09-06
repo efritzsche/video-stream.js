@@ -14,15 +14,13 @@ VideoStream.VideoCanvas = function(video, canvas){
 	
 	this.video = video;
 	this.canvas = canvas;
-	//this.canvas.width = this.video.videoWidth;
-	//this.canvas.height = this.video.videoHeight;
 	
 	this.textureInfo = createTextureInfo(this.gl, video, video.videoWidth, video.videoHeight);
 	
 	return this;
 };
 
-// make VideoCanvas easier accessible 
+// make VideoCanvas easier accessible
 var VideoCanvas = VideoStream.VideoCanvas;
 
 // simplify creation of VideoCanvas
@@ -99,10 +97,8 @@ VideoStream.VideoCanvas.prototype.start = function(){
 	this.isRunning = true;
 	var videoCanvas = this;
 	var render = function(time){
-		//var time = new Date().getTime();
 		videoCanvas.update();
 		videoCanvas.draw();
-		//alert(((new Date().getTime()) - time));
 		if(videoCanvas.isRunning == true){
 			requestAnimationFrame(render);
 		}
