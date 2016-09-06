@@ -3,20 +3,20 @@
  * <option> elements that represent each found device.
  * A device type to filter is optional, the default is the video input type.
  */
-VideoStream.UI.deviceSelector = function(selectElement, deviceType = VideoStream.DeviceType.VIDEO_INPUT){
+VideoStream.ui.deviceSelector = function(selectElement, deviceType = VideoStream.DeviceType.VIDEO_INPUT){
 	VideoStream.listDevices(deviceType)
 	.then(function(devices){
 		
 		var genericText;
 		switch(deviceType){
 		case VideoStream.DeviceType.VIDEO_INPUT :
-			genericText = VideoStream.UI.language['generic-camera'];
+			genericText = VideoStream.ui.language['generic-camera'];
 			break;
 		case VideoStream.DeviceType.AUDIO_INPUT :
-			genericText = VideoStream.UI.language['generic-audio-input'];
+			genericText = VideoStream.ui.language['generic-audio-input'];
 			break;
 		default:
-			genericText = VideoStream.UI.language['generic-input'];
+			genericText = VideoStream.ui.language['generic-input'];
 		}
 		
 		for(var i = 0, genericIndex = 1; i < devices.length; i++){
@@ -31,6 +31,6 @@ VideoStream.UI.deviceSelector = function(selectElement, deviceType = VideoStream
 	});
 }
 
-VideoStream.UI.language['generic-input'] = 'Generic Input';
-VideoStream.UI.language['generic-camera'] = 'Generic Camera';
-VideoStream.UI.language['generic-audio-input'] = 'Generic Audio Input';
+VideoStream.ui.language['generic-input'] = 'Generic Input';
+VideoStream.ui.language['generic-camera'] = 'Generic Camera';
+VideoStream.ui.language['generic-audio-input'] = 'Generic Audio Input';

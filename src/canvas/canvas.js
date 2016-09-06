@@ -9,19 +9,18 @@ VideoStream.VideoCanvas = function(video, canvas){
 		preferLowPowerToHighPerformance: false,
 		failIfMajorPerformanceCaveat   : false
 	};
-	this.gl = canvas.getContext('webgl', glContextAttributes);
+	// TODO keep an eye on WebGL2 (OpenGL ES 3.0) browser support
+	this.gl = canvas.getContext('webgl', glContextAttributes) || canvas.getContext('experimental-webgl', glContextAttributes);
 	
 	this.video = video;
 	this.canvas = canvas;
-	//this.canvas.width = this.video.videoWidth;
-	//this.canvas.height = this.video.videoHeight;
 	
 	this.textureInfo = createTextureInfo(this.gl, video, video.videoWidth, video.videoHeight);
 	
 	return this;
 };
 
-// make VideoCanvas easier accessible 
+// make VideoCanvas easier accessible
 var VideoCanvas = VideoStream.VideoCanvas;
 
 // simplify creation of VideoCanvas
@@ -98,10 +97,8 @@ VideoStream.VideoCanvas.prototype.start = function(){
 	this.isRunning = true;
 	var videoCanvas = this;
 	var render = function(time){
-		//var time = new Date().getTime();
 		videoCanvas.update();
 		videoCanvas.draw();
-		//alert(((new Date().getTime()) - time));
 		if(videoCanvas.isRunning == true){
 			requestAnimationFrame(render);
 		}
@@ -112,3 +109,14 @@ VideoStream.VideoCanvas.prototype.start = function(){
 VideoStream.VideoCanvas.prototype.stop = function(){
 	this.isRunning = false;
 };
+
+
+/**
+ * Streams the canvas to a given WebSocket server.
+ */
+VideoStream.VideoCanvas.prototype.streamToServer = function(url, options = {}){
+	var fps = options.fps ? options.fps : VideoStream.VideoCanvas.DEFAULT_FPS;
+	return new VideoStream.WebSocketStream(url, this.canvas.captureStream(fps), options);
+}
+
+VideoStream.VideoCanvas.prototype.DEFAULT_FPS = 25;

@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="VideoStream" default="compile-coffee" basedir=".">
+<project name="VideoStream" default="compile" basedir=".">
 	<property name="export-file-name" value="video-stream.js" />
+	<property name="compiled-file-name" value="video-stream.min.js" />
 	<property name="header-file-name" value="header.js" />
 	
-	<target name="compile-coffee" description="Compiles all .coffee files to .coffee.js files">
-		<apply executable="${npm.home}/coffee-compile.cmd" parallel="false" >
-			<fileset dir="src" includes="*.coffee" />
-			<srcfile />
-			<mapper type="glob" from="*.coffee" to="src/*.coffee.js" />
-			<targetfile />
-		</apply>
-	</target>
-	
-	<target name="concatenate" depends="compile-coffee" description="Concatenate all .js files">
+	<target name="concatenate" description="Concatenate all .js files">
 		<concat destfile="build/${export-file-name}">
 			<union>
 				<filelist dir="src" files="${header-file-name}" />
@@ -21,28 +13,11 @@
 		</concat>
 	</target>
 	
-	<target name="compress" depends="concatenate" description="Compress video-stream.js to video-stream.min.js">
-		<apply dir="build" executable="${npm.home}/uglifyjs.cmd" parallel="false">
-			<filelist dir="build" files="${export-file-name}" />
-			<srcfile />
-			<arg line="-o" />
-			<mapper type="glob" from="*.js" to="build/*.min.js" />
-			<targetfile />
-			<arg line="--unsafe" />
-			<!-- <arg line="- -unsafe -nc" /> -->
-			<!-- <arg line="${export-file-name}.js -o ${export-file-name}.min.js - -unsafe -nc"/> -->
-		</apply>
-	</target>
-	
-	<target name="compress-deprecated" depends="concatenate" description="Deprecated, compress video-stream.js to video-stream.min.js">
-		<apply executable="java" parallel="false">
-			<filelist dir="build" files="${export-file-name}" />
+	<target name="compile">
+		<exec executable="java">
 			<arg line="-jar" />
-			<arg path="ant/yuicompressor-2.4.8.jar" />
-			<srcfile />
-			<arg line="-o" />
-			<mapper type="glob" from="*.js" to="build/*.min.js" />
-			<targetfile />
-		</apply>
+			<arg path="ant/closure-compiler.jar" />
+			<arg line="--js_output_file=build/${compiled-file-name} 'src/${header-file-name}' 'src/*.js' 'src/**/*.js' '!**/*.exclude.js'" />
+		</exec>
 	</target>
 </project>
