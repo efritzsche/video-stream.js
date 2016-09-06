@@ -109,3 +109,14 @@ VideoStream.VideoCanvas.prototype.start = function(){
 VideoStream.VideoCanvas.prototype.stop = function(){
 	this.isRunning = false;
 };
+
+
+/**
+ * Streams the canvas to a given WebSocket server.
+ */
+VideoStream.VideoCanvas.prototype.streamToServer = function(url, options = {}){
+	var fps = options.fps ? options.fps : VideoStream.VideoCanvas.DEFAULT_FPS;
+	return new VideoStream.WebSocketStream(url, this.canvas.captureStream(fps), options);
+}
+
+VideoStream.VideoCanvas.prototype.DEFAULT_FPS = 25;
