@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="VideoStream" default="compile" basedir=".">
-	<property name="export-file-name" value="video-stream.js" />
+<project name="VideoStreamJS" default="compile" basedir=".">
 	<property name="compiled-file-name" value="video-stream.min.js" />
+	<property name="debug-file-name" value="video-stream.js" />
 	<property name="header-file-name" value="header.js" />
 	
-	<target name="concatenate" description="Concatenate all .js files">
-		<concat destfile="build/${export-file-name}">
-			<union>
-				<filelist dir="src" files="${header-file-name}" />
-				<fileset dir="src" includes="**/*.js" excludes="**/*.exclude.js" />
-			</union>
-		</concat>
-	</target>
-	
-	<target name="compile">
+	<target name="compile" description="Compile all .js files with googles closure-compiler">
 		<exec executable="java">
 			<arg line="-jar" />
 			<arg path="ant/closure-compiler.jar" />
 			<arg line="--js_output_file=build/${compiled-file-name} 'src/${header-file-name}' 'src/*.js' 'src/**/*.js' '!**/*.exclude.js'" />
 		</exec>
+	</target>
+	
+	<target name="concatenate" description="Concatenate all .js files, may used for debugging">
+		<concat destfile="build/${debug-file-name}">
+			<union>
+				<filelist dir="src" files="${header-file-name}" />
+				<fileset dir="src" includes="**/*.js" excludes="**/*.exclude.js" />
+			</union>
+		</concat>
 	</target>
 </project>
