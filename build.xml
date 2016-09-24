@@ -12,7 +12,7 @@
 		</exec>
 	</target>
 	
-	<target name="concatenate" description="Concatenate all .js files, may used for debugging">
+	<target name="concatenate" description="Concatenate all .js files, maybe used for debugging">
 		<concat destfile="build/${debug-file-name}">
 			<union>
 				<filelist dir="src" files="${header-file-name}" />
